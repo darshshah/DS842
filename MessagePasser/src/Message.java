@@ -56,27 +56,27 @@ public class Message implements Serializable{
 	}
 
 	private Boolean matchRule(Rule theRule){
-		Boolean[] judge = new Boolean[4];
-		int[] judgeno = new int[4];
+		Boolean[] judge = new Boolean[5];
+		int[] judgeno = new int[5];
 		Boolean result = true;
 		
-		for (int i = 0; i < 4; i++) {judge[i] = false;}
+		for (int i = 0; i < 5; i++) {judge[i] = false;}
 		
-		for (int i = 0; i < 4; i++) {judgeno[i] = 0;}
+		for (int i = 0; i < 5; i++) {judgeno[i] = 0;}
 		
-		if (theRule.source != "") {
+		if (!theRule.source.equals("")) {
 			judgeno[0] = 1;
-			if (theRule.source == source) {judge[0] = true;}
+			if (theRule.source.equals(source)) {judge[0] = true;}
 		} 
 		
-		if (theRule.dest != "") {
+		if (!theRule.dest.equals("")) {
 			judgeno[1] = 1;
-			if (theRule.dest == dest) {judge[1] = true;}
+			if (theRule.dest.equals(dest)) {judge[1] = true;}
 		}
 		
-		if (theRule.kind != "") {
+		if (!theRule.kind.equals("")) {
 			judgeno[2] = 1;
-			if (theRule.kind == kind) {judge[2] = true;}
+			if (theRule.kind.equals(kind)) {judge[2] = true;}
 		} 
 		
 		if (theRule.seqn != -1) {
@@ -84,7 +84,12 @@ public class Message implements Serializable{
 			if (theRule.seqn == seqn) {judge[3] = true;}
 		} 
 		
-		for (int i = 0; i < 4; i++){
+		if (!theRule.duplicate.equals("")) {
+			judgeno[4] = 1;
+			if ((theRule.duplicate.equals("true")&&(dupe == true))||(theRule.duplicate.equals("false")&&(dupe == false))) {judge[3] = true;}
+		} 
+		
+		for (int i = 0; i < 5; i++){
 			if (judgeno[i]==1) {result = result && judge[i];}
 		}
 		

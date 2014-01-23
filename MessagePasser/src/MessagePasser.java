@@ -32,13 +32,13 @@ public class MessagePasser {
 		this.config_filename = configuration_filename;
 		
 		this.Update_Config();
-		//helper.parseConfigFile(configuration_filename, users, sendRules, receiveRules);
+		helper.parseConfigFile(configuration_filename, users, sendRules, receiveRules);
 
-		ServerSocket receiveserver = null;
+		//ServerSocket receiveserver = null;
 
 		//Start accepting connection
 				
-		setConnection(users, local_name, helper, socketmap, receiveserver);
+		ServerSocket receiveserver = setConnection(users, local_name, helper, socketmap);
 		
 		new Thread(new Receiver(receiveserver,receiveRules)).start();
 		System.out.println("Server thread successfully started.");
@@ -61,17 +61,17 @@ public class MessagePasser {
 		if (!socketmap.containsKey(destname)){
 			User thedest = null;
 			for (int i = 0; i < users.size(); i++){
-				if (destname == users.get(i).name){
+				if (destname.equals(users.get(i).name)){
 					thedest = users.get(i);
 				}
 			}
-			Socket s = new Socket(thedest.ip,thedest.port);
+			Socket s = new Socket(thedest.getIp(),thedest.getPort());
 			socketmap.put(destname,s);
 		}
 		
 		Socket s = socketmap.get(destname);
 		String seaction = message.matchRules(sendRules);
-		if (seaction == "") {
+		if (seaction.equals("")) {
 			ObjectOutputStream sendstream = new ObjectOutputStream(s.getOutputStream());
 			sendstream.writeObject(message);
 			
@@ -80,8 +80,8 @@ public class MessagePasser {
 			}
 					
 		}
-		else if (seaction == "drop") {/*TODO*/}
-		else if (seaction == "duplicate") {
+		else if (seaction.equals("drop")) {/*TODO*/}
+		else if (seaction.equals("duplicate")) {
 			ObjectOutputStream sendstream = new ObjectOutputStream(s.getOutputStream());
 			sendstream.writeObject(message);
 			message.setDuplicate(true);
@@ -91,7 +91,7 @@ public class MessagePasser {
 				sendstream.writeObject(sendQ.remove());
 			}
 		}
-		else if (seaction == "delay") 
+		else if (seaction.equals("delay")) 
 			{
 				sendQ.add(message);			
 			}/*TODO*/ // Add to the DelayedQueue
@@ -111,14 +111,16 @@ public class MessagePasser {
 	}
 	/*End of method receive()*/
 	/*method setConnection*/
-	private void setConnection(ArrayList<User> users, String local_name, MPhelper helper, Map<String, Socket> socketmap, ServerSocket listener) throws IOException{
+	private ServerSocket setConnection(ArrayList<User> users, String local_name, MPhelper helper, Map<String, Socket> socketmap) throws IOException{
+		ServerSocket listener = null;
 		if (!helper.containName(users, local_name)){
-			return;
+			return listener;
 		}
 		System.out.println("reached here");
 		//Itself as a server
+		System.out.println(helper.getPort(users, local_name));
 		listener = new ServerSocket(helper.getPort(users, local_name));
-		
+		return listener;
 		//Itself as a client
 		/*for (int i = 0; i < users.size(); i++){
 			String thename = users.get(i).name;
@@ -143,6 +145,7 @@ public class MessagePasser {
 		public void run(){
 			while (true){
 				try {
+					System.out.println(receiveserver);
 					receivesocket = receiveserver.accept();
 					new Thread(new newReceiveThread(receivesocket,receiverules)).start();
 				} catch (IOException e) {
@@ -172,21 +175,22 @@ public class MessagePasser {
 					is=new ObjectInputStream(receivesocket.getInputStream());
 					recm = (Message) is.readObject();
 					String recaction = recm.matchRules(receiverules);
-					if (recaction == "") {
+					System.out.println(recaction);
+					if (recaction.equals("")) {
 						while(!receiveQ.isEmpty()){	
 							recbuf.add(receiveQ.remove());
 						}
 						recbuf.add(recm);
 					}
-					else if (recaction == "drop") {/*TODO*/}
-					else if (recaction == "duplicate") {
+					else if (recaction.equals("drop")) {/*TODO*/}
+					else if (recaction.equals("duplicate")) {
 						while(!receiveQ.isEmpty()){	
 							recbuf.add(receiveQ.remove());
 						}
 						recbuf.add(recm);
 						recm.setDuplicate(true);
 						recbuf.add(recm);}
-					else if (recaction == "delay") {
+					else if (recaction.equals("delay")) {
 						receiveQ.add(recm);
 					}
 					else {

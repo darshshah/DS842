@@ -43,10 +43,11 @@ public class MessagePasserTest {
 		    		mpass.send(mess);
 		    	}else if (str.equals("r")){
 		    		Message mess = mpass.receive();
-		    		if (!mess.equals(null)){
+		    		if (mess!=null){
 		    			System.out.println("*******MESSAGE*****");
 		    			System.out.println("Send from: " + mess.getSource());
 		    			System.out.println("Content: "+ mess.getData().toString());
+		    			System.out.println("SeqNum: "+ mess.getSequenceNumber());
 		    			System.out.println("*******MESSAGE*****");
 		    		}
 		    	}else{
@@ -56,25 +57,5 @@ public class MessagePasserTest {
 	 }
 }
 		    
-		    /*try {
-				MessagePasser mpass = new MessagePasser(args[0],args[1]);
-				System.out.println("step1");
-				Message mess = new Message("bob", "ACK", "ABCD");
-				System.out.println("step2");
-				mpass.send(mess);
-				
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				System.out.println("New message Passer failed");
-				e1.printStackTrace();
-			}	*/		
-		    
-		   /* try {
-		       monitor.check_file(filepath);
-		    } catch (InterruptedException e) {
-		         System.out.println(e);
-		    } catch (IOException e) {
-		    	System.out.println(e);
-			}*/
 
 
