@@ -1,4 +1,0 @@
-methods:
-1. void AnalyzeConfigFile(String configuration_filename){}
-2. void Send(Message message){}
-3. Message receive(){}
