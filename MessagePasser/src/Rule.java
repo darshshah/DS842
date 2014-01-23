@@ -5,14 +5,17 @@ public class Rule {
 	String dest;
 	String kind;
 	int seqn;
+	String duplicate;
 	
 	public Rule(){}
-	public Rule(String action, String source, String dest, String kind, int seqn){
+	public Rule(String action, String source, String dest, String kind, int seqn, String dup){
 		this.action = action;
 		this.source = source;
 		this.dest = dest;
 		this.kind = kind;
 		this.seqn = seqn;
+		this.duplicate = dup; 
+		
 	}
 	public String getAction() {
 		return action;
@@ -43,5 +46,11 @@ public class Rule {
 	}
 	public void setSeqn(int seqn) {
 		this.seqn = seqn;
+	}
+	public String getDuplicate() {
+		return duplicate;
+	}
+	public void setDuplicate(String dup) {
+		this.duplicate = dup;
 	}
 }

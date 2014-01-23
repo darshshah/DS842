@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -9,6 +10,7 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Queue;
 
 
 public class MessagePasser {
@@ -17,20 +19,38 @@ public class MessagePasser {
 	ArrayList<User> users = new ArrayList<User>();
 	ArrayList<Rule> sendRules = new ArrayList<Rule>();
 	ArrayList<Rule> receiveRules = new ArrayList<Rule>();
+	Queue<Message> sendQ = new LinkedList<Message>();
+	Queue<Message> receiveQ = new LinkedList<Message>();
+	MPhelper helper = new MPhelper();
+	private String config_filename;
 	private String localname;
+	
+	public MessagePasser() {}
+		
 	public MessagePasser(String configuration_filename,String local_name) throws IOException {
 		this.localname = local_name;
-		MPhelper helper = new MPhelper();
-		helper.parseConfigFile(configuration_filename, users, sendRules, receiveRules);
+		this.config_filename = configuration_filename;
+		
+		this.Update_Config();
+		//helper.parseConfigFile(configuration_filename, users, sendRules, receiveRules);
 
 		ServerSocket receiveserver = null;
 
 		//Start accepting connection
+				
 		setConnection(users, local_name, helper, socketmap, receiveserver);
 		
 		new Thread(new Receiver(receiveserver,receiveRules)).start();
 		System.out.println("Server thread successfully started.");
 
+	}
+	
+	public void Update_Config()
+	{
+		System.out.println("Here !!");
+		/* TODO: Reset all the arraylist ? Users, sendRules, receiveRules ? */
+		helper.parseConfigFile(config_filename, users, sendRules, receiveRules);
+		
 	}
 	/*method send(Message)*/
 	public void send(Message message) throws UnknownHostException, IOException {
@@ -54,14 +74,27 @@ public class MessagePasser {
 		if (seaction == "") {
 			ObjectOutputStream sendstream = new ObjectOutputStream(s.getOutputStream());
 			sendstream.writeObject(message);
+			
+			while(!sendQ.isEmpty()){	
+				sendstream.writeObject(sendQ.remove());
+			}
+					
 		}
-		else if (seaction == "drop") {}
+		else if (seaction == "drop") {/*TODO*/}
 		else if (seaction == "duplicate") {
 			ObjectOutputStream sendstream = new ObjectOutputStream(s.getOutputStream());
 			sendstream.writeObject(message);
 			message.setDuplicate(true);
-			sendstream.writeObject(message);}
-		else if (seaction == "delay") {/*TODO*/}
+			sendstream.writeObject(message);
+		
+			while(!sendQ.isEmpty()){	
+				sendstream.writeObject(sendQ.remove());
+			}
+		}
+		else if (seaction == "delay") 
+			{
+				sendQ.add(message);			
+			}/*TODO*/ // Add to the DelayedQueue
 		else {
 			System.out.println("Send action read error!");
 		}
@@ -70,6 +103,10 @@ public class MessagePasser {
 	/*End of method send(Message)*/
 	/*method receive()*/
 	public Message receive() throws InterruptedException {
+		if (recbuf.isEmpty()){
+			System.out.println("NO MESSAGE TO BE RECEIVED!");
+			return null;
+		}
 		return recbuf.take();
 	}
 	/*End of method receive()*/
@@ -78,21 +115,22 @@ public class MessagePasser {
 		if (!helper.containName(users, local_name)){
 			return;
 		}
+		System.out.println("reached here");
 		//Itself as a server
 		listener = new ServerSocket(helper.getPort(users, local_name));
+		
 		//Itself as a client
-		for (int i = 0; i < users.size(); i++){
+		/*for (int i = 0; i < users.size(); i++){
 			String thename = users.get(i).name;
-			if (thename!=local_name){
-				Socket s = new Socket(users.get(i).ip,users.get(i).port);
+			if (!thename.equals(local_name)){
+				System.out.println(users.get(i).getIp() + " port "+users.get(i).getPort());
+				Socket s = new Socket(users.get(i).getIp(),users.get(i).getPort());
 				socketmap.put(thename,s);
 			}
-		}		
+		}*/		
 	}
 	/*End of method setConnection*/
-	/*Receiver*/
 	private class Receiver implements Runnable{
-		ObjectInputStream is;
 		ServerSocket receiveserver;
 		Socket receivesocket;
 		ArrayList<Rule> receiverules;
@@ -106,21 +144,54 @@ public class MessagePasser {
 			while (true){
 				try {
 					receivesocket = receiveserver.accept();
-					System.out.println("Server accepted connection.");
+					new Thread(new newReceiveThread(receivesocket,receiverules)).start();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	/*End of class Receiver*/
+	/*Begin of newReveiceThread*/
+	private class newReceiveThread implements Runnable{
+		Socket receivesocket;
+		ArrayList<Rule> receiverules;
+		ObjectInputStream is;
+		
+		public newReceiveThread(Socket receivesocket, ArrayList<Rule> rr){
+			this.receivesocket = receivesocket;
+			this.receiverules = rr;
+		}
+		@Override
+		public void run(){
+			System.out.println("Server accepted connection.");
+			while(true){
+				try {
+					Message recm;
 					is=new ObjectInputStream(receivesocket.getInputStream());
-					Message recm = (Message) is.readObject();
+					recm = (Message) is.readObject();
 					String recaction = recm.matchRules(receiverules);
-					if (recaction == "") {recbuf.add(recm);}
+					if (recaction == "") {
+						while(!receiveQ.isEmpty()){	
+							recbuf.add(receiveQ.remove());
+						}
+						recbuf.add(recm);
+					}
 					else if (recaction == "drop") {/*TODO*/}
 					else if (recaction == "duplicate") {
+						while(!receiveQ.isEmpty()){	
+							recbuf.add(receiveQ.remove());
+						}
 						recbuf.add(recm);
 						recm.setDuplicate(true);
 						recbuf.add(recm);}
-					else if (recaction == "delay") {/*TODO*/}
+					else if (recaction == "delay") {
+						receiveQ.add(recm);
+					}
 					else {
 						System.out.println("Receive action read error!");
 					}
-					
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -131,5 +202,5 @@ public class MessagePasser {
 			}
 		}
 	}
-	/*End of class Receiver*/
+	/*End of newReceiveThread*/
 }

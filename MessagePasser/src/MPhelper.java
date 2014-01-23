@@ -5,17 +5,16 @@ import java.util.Map;
 import java.util.*;
 import org.yaml.snakeyaml.Yaml;
 
-
 public class MPhelper {
 	public MPhelper(){}
 	public boolean containName(ArrayList<User> users, String name){
 		int length = users.size();
 		if (length == 0){
-			System.out.println("Cannot find the name!");
+			System.out.println("Cannot find the nameasdfaf!");
 			return false;
 		}
 		for (int i = 0; i < length; i++){
-			if (name == users.get(i).name) {return true;}
+			if (name.equals(users.get(i).getName())) {return true;}
 		}
 		System.out.println("Cannot find the name!");
 		return false;
@@ -27,7 +26,7 @@ public class MPhelper {
 			return null;
 		}
 		for (int i = 0; i < length; i++){
-			if (name == users.get(i).name) {return users.get(i).ip;}
+			if (name.equals(users.get(i).getName())) {return users.get(i).getIp();}
 		}
 		return null;
 	}
@@ -38,7 +37,7 @@ public class MPhelper {
 			return -1;
 		}
 		for (int i = 0; i < length; i++){
-			if (name == users.get(i).name) {return users.get(i).port;}
+			if (name.equals(users.get(i).getName())) {return users.get(i).getPort();}
 		}
 		return -1;
 	}
@@ -47,6 +46,7 @@ public class MPhelper {
 		File file = new File(configuration_filename);
 		String content = null;
 		try{
+			System.out.println("the name of the file is "+file);
 			FileReader reader = new FileReader(file);
 			char[] chars = new char[(int) file.length()];
 			reader.read(chars);
@@ -55,21 +55,74 @@ public class MPhelper {
 		} catch (IOException e){
 			e.printStackTrace();
 		}
-		Map<String, ArrayList<Map<String, String>>> configmap = (Map<String,ArrayList<Map<String, String>>>) yaml.load(content);
 		
-		List<Map<String, String>> configlist = configmap.get("configuration");
+		Map<String, ArrayList<Map<String, Object>>> configmap = (Map<String,ArrayList<Map<String, Object>>>) yaml.load(content);
+		
+		List<Map<String, Object>> configlist = configmap.get("configuration");
+					
+		if(!users.isEmpty())
+			users.clear();
+			
 		for (int i = 0; i < configlist.size(); i++){
-			users.add(new User(configlist.get(i).get("name"),configlist.get(i).get("ip"),Integer.parseInt(configlist.get(i).get("port"))));
+			users.add(new User(configlist.get(i).get("name").toString(),configlist.get(i).get("ip").toString(),Integer.parseInt(configlist.get(i).get("port").toString())));
 		}
 		
 		configlist = configmap.get("sendRules");
+		System.out.println(configlist);
+		
+		if(!receiveRules.isEmpty())
+			receiveRules.clear();
+		
 		for (int i = 0; i < configlist.size(); i++){
-			sendRules.add(new Rule(configlist.get(i).get("action"),configlist.get(i).get("src"),configlist.get(i).get("dest"),configlist.get(i).get("kind"),Integer.parseInt(configlist.get(i).get("seqNum"))));
+			Map<String, Object> temp= configlist.get(i);
+			
+			if (!temp.containsKey("action")){
+				temp.put("action","");
+			}
+			if (!temp.containsKey("kind")){
+				temp.put("kind","");
+			}
+			if (!temp.containsKey("src")){
+				temp.put("src","");
+			}
+			if (!temp.containsKey("dest")){
+				temp.put("dest","");
+			}
+			if (!temp.containsKey("seqNum")){
+				temp.put("seqNum","-1");
+			}
+			if (!temp.containsKey("duplicate")){
+				temp.put("duplicate","");
+			}
+			sendRules.add(new Rule(configlist.get(i).get("action").toString(),configlist.get(i).get("src").toString(),configlist.get(i).get("dest").toString(),configlist.get(i).get("kind").toString(),Integer.parseInt(configlist.get(i).get("seqNum").toString()), configlist.get(i).get("duplicate").toString()));
 		}
 		
 		configlist = configmap.get("receiveRules");
+		
+		if(!sendRules.isEmpty())
+			sendRules.clear();
+		
 		for (int i = 0; i < configlist.size(); i++){
-			receiveRules.add(new Rule(configlist.get(i).get("action"),configlist.get(i).get("src"),configlist.get(i).get("dest"),configlist.get(i).get("kind"),Integer.parseInt(configlist.get(i).get("seqNum"))));
+			Map<String, Object> temp= configlist.get(i);
+			if (!temp.containsKey("action")){
+				temp.put("action","");
+			}
+			if (!temp.containsKey("kind")){
+				temp.put("kind","");
+			}
+			if (!temp.containsKey("src")){
+				temp.put("src","");
+			}
+			if (!temp.containsKey("dest")){
+				temp.put("dest","");
+			}
+			if (!temp.containsKey("seqNum")){
+				temp.put("seqNum","-1");
+			}
+			if (!temp.containsKey("duplicate")){
+				temp.put("duplicate","");
+			}
+			receiveRules.add(new Rule(configlist.get(i).get("action").toString(),configlist.get(i).get("src").toString(),configlist.get(i).get("dest").toString(),configlist.get(i).get("kind").toString(),Integer.parseInt(configlist.get(i).get("seqNum").toString()),configlist.get(i).get("duplicate").toString()));
 		}
 	}
 }
