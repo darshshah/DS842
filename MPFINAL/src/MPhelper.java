@@ -1,7 +1,6 @@
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Map;
 import java.util.*;
 import org.yaml.snakeyaml.Yaml;
 
@@ -10,13 +9,13 @@ public class MPhelper {
 	public boolean containName(ArrayList<User> users, String name){
 		int length = users.size();
 		if (length == 0){
-			System.out.println("Cannot find the nameasdfaf!");
+			System.out.println("Cannot find the name!");
 			return false;
 		}
 		for (int i = 0; i < length; i++){
 			if (name.equals(users.get(i).getName())) {return true;}
 		}
-		System.out.println("Cannot find the name!");
+		System.out.println("Cannot find the name!!!!");
 		return false;
 	}
 	public String getIp(ArrayList<User> users, String name){
@@ -46,7 +45,6 @@ public class MPhelper {
 		File file = new File(configuration_filename);
 		String content = null;
 		try{
-			System.out.println("the name of the file is "+file);
 			FileReader reader = new FileReader(file);
 			char[] chars = new char[(int) file.length()];
 			reader.read(chars);
@@ -68,7 +66,6 @@ public class MPhelper {
 		}
 		
 		configlist = configmap.get("sendRules");
-		System.out.println(configlist);
 		
 		if(!sendRules.isEmpty())
 			sendRules.clear();
@@ -123,6 +120,7 @@ public class MPhelper {
 				temp.put("duplicate","");
 			}
 			receiveRules.add(new Rule(configlist.get(i).get("action").toString(),configlist.get(i).get("src").toString(),configlist.get(i).get("dest").toString(),configlist.get(i).get("kind").toString(),Integer.parseInt(configlist.get(i).get("seqNum").toString()),configlist.get(i).get("duplicate").toString()));
+			
 		}
 	}
 }

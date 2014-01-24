@@ -14,23 +14,30 @@ public class Message implements Serializable{
 		this.seqn = counter++;
 		this.dupe = false;
 	}
-	public Message(String source, String dest, String kind, Object data) {
+	public Message(String dest, String kind, Object data) {
 		this.dest = dest;
 		this.kind = kind;
 		this.data = data;
 		this.seqn=counter++;
 		this.dupe = false;
-		System.out.println("Seq Num is "+ this.seqn);
 	}
-	public Message(Message orig) {
-		this.source = orig.source;
-		this.dest = orig.dest;
-		this.kind = orig.kind;
-		this.data = orig.data;
-		this.seqn = orig.seqn;
-		this.dupe = true;
-		System.out.println("Seq Num is "+ this.seqn);
-	}
+	 public Message(Message orig) {
+
+         this.source = orig.source;
+
+         this.dest = orig.dest;
+
+         this.kind = orig.kind;
+
+         this.data = orig.data;
+
+         this.seqn = orig.seqn;
+
+         this.dupe = true;
+
+         System.out.println("Seq Num is "+ this.seqn);
+
+ }
 	public void setSource(String source) {this.source = source;}
 
 	public void setDuplicate(Boolean dupe) {this.dupe = dupe;}
@@ -93,7 +100,7 @@ public class Message implements Serializable{
 			judgeno[3] = 1;
 			if (theRule.seqn == seqn) {judge[3] = true;}
 		} 
-		
+				
 		if (!theRule.duplicate.equals("")) {
 			judgeno[4] = 1;
 			if ((theRule.duplicate.equals("true")&&(dupe == true))||(theRule.duplicate.equals("false")&&(dupe == false))) {judge[3] = true;}

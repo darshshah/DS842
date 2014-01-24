@@ -10,6 +10,11 @@ public class User {
 		this.ip = ip;
 		this.port = port;
 	}
+	public String getNameByPort(int port){
+		if (port == this.port)
+			return this.name;
+		return "";
+	}
 	public String getName() {
 		return name;
 	}
